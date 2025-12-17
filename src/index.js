@@ -17,8 +17,6 @@ const client = new Client(
   ]
 });
 
-let guild = null
-
 // Je savais pas quelle base de données vous utiliseriez, donc j’ai préparé ça, aucune idée si ce sera utile, mais c’est ici :>
 const database = new DatabaseHandler(new MongoAdapter(Bun.env.DATABASE_HOST));
 const commandHandler = new CommandHandler(database);
@@ -26,15 +24,27 @@ const activeWelcomeCache = new Map();
 
 client.once(Events.ClientReady, async () => 
 {
-  guild = await client.guilds.fetch(config.guildId)
   console.log(`${client.user.tag} is ready!`);
   await database.connect();
   console.log(`Database is ready!`);
 });
 
-//client.on(Events.GuildMemberAdd, async (member) => 
 
-async function sendCoffeeMessage(member) {
+//client.on(Events.GuildMemberAdd, async (member) => 
+client.on(Events.GuildMemberUpdate, async (oldMember, newMember) =>
+{
+  const oldRoles = oldMember.roles.cache;
+  const newRoles = newMember.roles.cache;
+
+  // If oldRoles contains only one role (which is @everyone), that means the data is only partial. So ignore that event.
+  const invalidOldRoles = oldRoles.map(r => r.id).length === 1
+  
+  if (invalidOldRoles || oldRoles.has(config.detectedRoleId) || !newRoles.has(config.detectedRoleId)) {
+    return;
+  }
+
+  const member = await newMember.fetch()
+
   const channel = member.guild.channels.cache.get(config.channelId.toString());
   if(!channel) 
   {
@@ -55,16 +65,13 @@ async function sendCoffeeMessage(member) {
   
   if(config.welcomeMessage.button.iconId) coffeeButton.setEmoji(config.welcomeMessage.button.iconId);
 
+  
   const content = config.welcomeMessage.content.replace('${newMember}', member.user.globalName);
   const row = new ActionRowBuilder().addComponents(coffeeButton);
   const message = await channel.send({ content: content, components: [row] });
   
   activeWelcomeCache.set(message.id, member.id);
-}
-
-async function getMemberFromUser(user) {
-  return (await guild.members.fetch(user.id))
-}
+});
 
 client.on(Events.GuildMemberRemove, async (member) => 
 {
@@ -98,17 +105,6 @@ client.on(Events.InteractionCreate, async (interaction) =>
 {
   if(interaction.isButton()) 
   {
-
-    if(interaction.customId === "rules-confirm") {
-      if(guild == null) {
-        console.warn("Guild was not fetched !")
-        return;
-      }
-      const member = await getMemberFromUser(interaction.user)
-      await sendCoffeeMessage(member)
-      return
-    }
-
     if(interaction.customId !== 'offer_coffee') return;
     const messageId = interaction.message.id;
     const newMemberId = activeWelcomeCache.get(messageId);
