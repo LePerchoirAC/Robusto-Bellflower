@@ -1,13 +1,13 @@
 {
-  "guildId": "1449678768577839156",
-  "channelId": "1449678769714630739",
+  "guildId": "333006380170739712",
+  "channelId": "1450941236595916840",
   "welcomeMessage": {
     "content": "**${newMember}** vient débarquer sur le Perchoir ! Offrez-lui un café !",
     "deleteIfUserQuit": true,
     "unique": true,
     "button": {
       "label": "Offrir un café !",
-      "iconId": "1449781153644150835"
+      "iconId": "796449207405510736"
     }
   },
   "interaction":

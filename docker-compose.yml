@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=$MONGODB_USER
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGODB_PASSWORD
+      - MONGO_INITDB_DATABASE=$MONGODB_DATABASE
+    volumes:
+      - db:/data/db
+  app:
+    depends_on:
+      - mongo
+    build: 
+      context: .
+      args:
+        - CLIENT_ID=$CLIENT_ID
+        - DISCORD_TOKEN=$DISCORD_TOKEN
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - DATABASE_HOST=mongodb://$MONGODB_USER:$MONGODB_PASSWORD@mongo:27017/
+    stdin_open: true
+    tty: true
+
+volumes:
+  db:

@@ -17,3 +17,7 @@
 # Source Code
 !src/
 !src/**/*
+
+# Docker
+!Dockerfile
+!docker-compose.yml
