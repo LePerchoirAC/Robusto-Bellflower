@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Events, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } from 'discord.js';
+import { Client, GatewayIntentBits, Events, Partials, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } from 'discord.js';
 import config from "../clientconfig.json";
 import { DatabaseHandler } from "./database/DatabaseHandler";
 import { MongoAdapter } from "./database/MongoAdapter"
@@ -10,6 +10,10 @@ const client = new Client(
   [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers
+  ],
+  partials: [
+    Partials.GuildMember,
+    Partials.User
   ]
 });
 
@@ -25,8 +29,19 @@ client.once(Events.ClientReady, async () =>
   console.log(`Database is ready!`);
 });
 
-client.on(Events.GuildMemberAdd, async (member) => 
+
+//client.on(Events.GuildMemberAdd, async (member) => 
+client.on(Events.GuildMemberUpdate, async (oldMember, newMember) =>
 {
+  const oldRoles = oldMember.roles.cache;
+  const newRoles = newMember.roles.cache;
+
+  if (oldRoles.has(config.detectedRoleId) || !newRoles.has(config.detectedRoleId)) {
+    return;
+  }
+
+  const member = await newMember.fetch()
+
   const channel = member.guild.channels.cache.get(config.channelId.toString());
   if(!channel) 
   {
@@ -43,12 +58,12 @@ client.on(Events.GuildMemberAdd, async (member) =>
   const coffeeButton = new ButtonBuilder()
     .setCustomId('offer_coffee')
     .setLabel(config.welcomeMessage.button.label)
-    .setStyle(ButtonStyle.Primary);
+    .setStyle(ButtonStyle.Success);
   
   if(config.welcomeMessage.button.iconId) coffeeButton.setEmoji(config.welcomeMessage.button.iconId);
 
   
-  const content = config.welcomeMessage.content.replace('${newMember}', member.user.username);
+  const content = config.welcomeMessage.content.replace('${newMember}', member.user.globalName);
   const row = new ActionRowBuilder().addComponents(coffeeButton);
   const message = await channel.send({ content: content, components: [row] });
   
@@ -108,7 +123,7 @@ client.on(Events.InteractionCreate, async (interaction) =>
     activeWelcomeCache.delete(messageId);
     
     await interaction.channel.send({ content: config.interaction.message.success
-                                      .replace('${fastClicker}', `<@${fastClicker.username}>`)
+                                      .replace('${fastClicker}', `<@${fastClicker.id}>`)
                                       .replace('${newMember}', `<@${newMemberId}>`) 
     });
     await database.incrementCoffeeCount(fastClicker.id, newMemberId);
