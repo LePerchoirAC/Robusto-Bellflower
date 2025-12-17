@@ -36,7 +36,10 @@ client.on(Events.GuildMemberUpdate, async (oldMember, newMember) =>
   const oldRoles = oldMember.roles.cache;
   const newRoles = newMember.roles.cache;
 
-  if (oldRoles.has(config.detectedRoleId) || !newRoles.has(config.detectedRoleId)) {
+  // If oldRoles contains only one role (which is @everyone), that means the data is only partial. So ignore that event.
+  const invalidOldRoles = oldRoles.map(r => r.id).length === 1
+  
+  if (invalidOldRoles || oldRoles.has(config.detectedRoleId) || !newRoles.has(config.detectedRoleId)) {
     return;
   }
 
