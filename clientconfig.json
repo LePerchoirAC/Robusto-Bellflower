@@ -3,7 +3,7 @@
   "channelId": "1450941236595916840",
   "detectedRoleId" : "1449131191872655360",
   "welcomeMessage": {
-    "content": "**${newMember}** vient débarquer sur le Perchoir ! Offrez-lui un café ! <:coffee_cafe:569508784175579137>",
+    "content": "**${newMember}** vient débarquer sur le Perchoir ! Offrez-lui un café ! <:coffee_cafe:907046509298741258>",
     "deleteIfUserQuit": true,
     "unique": false,
     "button": {
