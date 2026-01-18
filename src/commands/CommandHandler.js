@@ -25,7 +25,7 @@ export class CommandHandler
     
     if(!command) 
     {
-      await interaction.reply({ content: config.command.commandHandler.unknown, flags: MessageFlags.Ephemeral });
+      //await interaction.reply({ content: config.command.commandHandler.unknown, flags: MessageFlags.Ephemeral });
       return;
     }
     

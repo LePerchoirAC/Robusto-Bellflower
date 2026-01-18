@@ -91,7 +91,8 @@ client.on(Events.InteractionCreate, async (interaction) =>
   if(interaction.isButton()) 
   {
     if(interaction.customId == 'rules-confirm') {
-      member = await interaction.member.fetch()
+      //console.log(interaction)
+      const member = await interaction.member.fetch()
       await handleJoin(member)
       return;
     }
@@ -129,4 +130,4 @@ client.on(Events.InteractionCreate, async (interaction) =>
   }
 });
 
-client.login(Bun.env.DISCORD_TOKEN);
+client.login(Bun.env.DISCORD_TOKEN)
