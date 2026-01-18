@@ -29,22 +29,7 @@ client.once(Events.ClientReady, async () =>
   console.log(`Database is ready!`);
 });
 
-
-//client.on(Events.GuildMemberAdd, async (member) => 
-client.on(Events.GuildMemberUpdate, async (oldMember, newMember) =>
-{
-  const oldRoles = oldMember.roles.cache;
-  const newRoles = newMember.roles.cache;
-
-  // If oldRoles contains only one role (which is @everyone), that means the data is only partial. So ignore that event.
-  const invalidOldRoles = oldRoles.map(r => r.id).length === 1
-  
-  if (invalidOldRoles || oldRoles.has(config.detectedRoleId) || !newRoles.has(config.detectedRoleId)) {
-    return;
-  }
-
-  const member = await newMember.fetch()
-
+const handleJoin = async (member) => {
   const channel = member.guild.channels.cache.get(config.channelId.toString());
   if(!channel) 
   {
@@ -71,7 +56,7 @@ client.on(Events.GuildMemberUpdate, async (oldMember, newMember) =>
   const message = await channel.send({ content: content, components: [row] });
   
   activeWelcomeCache.set(message.id, member.id);
-});
+}
 
 client.on(Events.GuildMemberRemove, async (member) => 
 {
@@ -105,6 +90,12 @@ client.on(Events.InteractionCreate, async (interaction) =>
 {
   if(interaction.isButton()) 
   {
+    if(interaction.customId == 'rules-confirm') {
+      member = await interaction.member.fetch()
+      await handleJoin(member)
+      return;
+    }
+
     if(interaction.customId !== 'offer_coffee') return;
     const messageId = interaction.message.id;
     const newMemberId = activeWelcomeCache.get(messageId);
